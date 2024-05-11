@@ -1,44 +1,90 @@
 #!/bin/sh
 #APPRENTICE提出QUEST パスワードマネージャー
 
-# ユーザーから入力された以下の情報をFileNameに保存する
-#  ・サービス名
-#  ・ユーザー名
-#  ・パスワード
+#グローバル変数
+FileName="PassWord.txt"
 
 
-#データ取得用関数
-#   引数
-#   第1引数：ユーザーに表示するテキスト
-#   第2引数：ユーザーから取得するテキスト
-GetData(){
+#各データ入力用関数
+# 第1引数のテキストを表示し、第2引数の変数へ入力値を格納する
+InputData(){
     echo "$1"
     read "$2"
 }
 
+#保存用関数
+# 渡された3つの引数をFileNameに保存する
+#   保存するテキストの形式
+#       第1引数:第2引数:第3引数
+#       サービス名:ユーザー名:パスワード
+AddPassword(){
+    InputData "サービス名を入力してください：" ServiceName
+    InputData "ユーザー名を入力してください：" UserName
+    InputData "パスワードを入力してください：" PassWord
 
-#データ保存用関数
-#   引数
-#   第1~3引数:保存するデータ
-#   第4引数  :保存するファイル名
-AddData(){
-    echo "$1:$2:$3" >> "$4"
+    echo "$ServiceName:$UserName:$PassWord" >> $FileName
+    echo "パスワードの追加は成功しました。"
+}
+
+
+
+#データ表示用関数
+# 渡されたサービス名と一致するデータをFileNameから抽出し、表示する
+GetPassword(){
+    InputData "表示するサービス名を入力してください。" ServiceName
+
+    Found=False
+
+    while IFS=":" read -r serviceName userName passWord; do #サービス名と一致するテキストを抽出
+        if [ "$ServiceName" = "$serviceName" ]; then
+            echo "サービス名：$serviceName"
+            echo "ユーザー名：$userName"
+            echo "パスワード：$passWord"
+            Found=True
+        fi
+    done < "$FileName"
+
+    if [ "$Found" = False ]; then #サービス名が見つからなかった場合
+        echo "そのサービスは登録されていません。"
+    fi
+
+    }
+
+
+
+#モード選択用関数
+# 入力されたテキストに応じてモードを選択し実行する
+SelectMode(){
+    ExitFrag=False
+
+    while [ "$ExitFrag" = False ]; do #"Exit"が入力される(ExitFragがTrueになる)まで繰り返す
+        InputData "Add Password/Get Password/Exit から入力してください。" mode
+        case "$mode" in
+            "Add Password")
+                AddPassword
+                ;;
+            "Get Password")
+                GetPassword
+                ;;
+            "Exit")
+                ExitFrag=True
+                ;; 
+            *)
+                echo "入力が間違えています。Add Password/Get Password/Exit から入力してください。"
+                SelectMode
+                ;;
+        esac
+    done
+
+
 }
 
 
 #メイン関数
 Main(){
-    FileName="PassWord.txt"
-
     echo "パスワードマネージャーへようこそ！"
-    GetData "サービス名を入力してください：" ServiceName
-    GetData "ユーザー名を入力してください：" UserName
-    GetData "パスワードを入力してください：" PassWord
-
-
-    AddData $ServiceName $UserName $PassWord $FileName
+    SelectMode
     echo "Thank you!"
 }
-
 
 Main
