@@ -2,15 +2,15 @@
 #APPRENTICE提出QUEST パスワードマネージャー
 
 #グローバル変数
-FileName="PassWord.txt"
-DecryptedFileName=$FileName".gpg"
+PassWordFileName="PassWord"
+EncryptedFileName=$PassWordFileName".gpg"
 GPGUserName="Hakuryu"
 
 #拡張子除外関数
 ExtractFileName(){
-    local FileNameWithExtension="$1"
-    local OnlyFileName="${FileNameWithExtension%.*}"
-    echo "$OnlyFileName"
+    local fileNameWithExtension="$1"
+    local OnlyfileName="${fileNameWithExtension%%.*}"
+    echo "$OnlyfileName"
 }
 
 #各データ入力用関数
@@ -21,11 +21,12 @@ InputData(){
 }
 
 #ファイル暗号化用関数
-# 引数として渡されたファイルを暗号化してから保存し、暗号化前のファイルを削除する
+# 引数として渡されたファイルを暗号化してから保存
 # 暗号化されたファイルの拡張子は FileName + ".gpg" となる
 EncryptFile(){
+    # local EncryptedFileName=$1".gpg"
+    # local RenameFileName=$(ExtractFileName "$1") #余分な拡張子を除外 例)gpg.tmp.gpg 
     gpg --encrypt -r "$GPGUserName" "$1"
-    rm "$2"
 }
 
 #ファイル復号化用関数
@@ -34,6 +35,7 @@ EncryptFile(){
 DecryptFile(){
     gpg --decrypt "$1"
 }
+
 
 #保存用関数
 # 渡された3つの引数をFileNameに保存する
@@ -46,31 +48,34 @@ AddPassword(){
     InputData "パスワードを入力してください：" PassWord
 
     #もし既に保存用ファイルがある場合：復号化してから追記する、一時ファイルを使用する
-    if [ -e "$DecryptedFileName" ]; then
-        DecryptFileTmp="$DecryptedFileName.tmp" #一時ファイル名
+    if [ -e "$EncryptedFileName" ]; then
+        TmpFileName="$PassWordFileName.tmp" #一時ファイル名
 
         #復号化したファイルを一時ファイルに保存
-        DecryptFile "$DecryptedFileName" > $DecryptFileTmp 
+        DecryptFile "$EncryptedFileName" > "$TmpFileName"
 
         #一時ファイルに追記
-        echo "$ServiceName:$UserName:$PassWord" >> $DecryptFileTmp 
+        echo "$ServiceName:$UserName:$PassWord" >> "$TmpFileName"
 
         #一時ファイルを元ファイルに上書き
-        mv $DecryptFileTmp "$FileName"
-        rm $DecryptFileTmp #一時ファイルを削除
+        mv "$TmpFileName" "$EncryptedFileName"
 
-        #一時ファイルを暗号化
-        EncryptFile "$FileName" "FileName
- 
+        #暗号化して保存
+        EncryptFile "$EncryptedFileName"
+
+        #ファイルをリネーム
+        mv "$EncryptedFileName"".gpg" "$PassWordFileName"".gpg"
+
+        echo "パスワードの追加は成功しました。"
 
     #もしファイルがない場合：新たに作成し、暗号化する
     else
-        echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
-        EncryptFile "$FileName"
-                
+        echo "$ServiceName:$UserName:$PassWord" >> "$PassWordFileName"
+        EncryptFile "$PassWordFileName" #FileName.gpgが作成される
+        rm "$PassWordFileName"
+        echo "パスワードの追加は成功しました。"
     fi
 
-    echo "パスワードの追加は成功しました。"
 }
 
 
@@ -89,7 +94,7 @@ GetPassword(){
             echo "パスワード：$passWord"
             Found=True
         fi
-    done < <(DecryptFile "$FileName")
+    done < <(DecryptFile "$EncryptedFileName")
 
     if [ "$Found" = False ]; then #サービス名が見つからなかった場合
         echo "そのサービスは登録されていません。"
