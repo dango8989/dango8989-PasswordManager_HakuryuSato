@@ -23,9 +23,10 @@ AddPassword(){
     InputData "ユーザー名を入力してください：" UserName
     InputData "パスワードを入力してください：" PassWord
 
-    echo "$ServiceName:$UserName:$PassWord" >> $FileName
+    echo "$ServiceName:$UserName:$PassWord" >> gpg --output "$EncryptedFileName" --encrypt
     echo "パスワードの追加は成功しました。"
 }
+
 
 
 
