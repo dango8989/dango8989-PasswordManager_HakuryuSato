@@ -3,6 +3,7 @@
 
 #グローバル変数
 FileName="PassWord.txt"
+EncryptedFileName="PassWord.gpg"
 
 
 #各データ入力用関数
@@ -25,6 +26,7 @@ AddPassword(){
     echo "$ServiceName:$UserName:$PassWord" >> $FileName
     echo "パスワードの追加は成功しました。"
 }
+
 
 
 
