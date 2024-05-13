@@ -20,7 +20,7 @@ InputData(){
 # 暗号化されたファイルの拡張子は FileName + ".gpg" となる
 EncryptFile(){
     gpg --encrypt -r "$GPGUserName" "$1"
-    rm "$1"
+    rm "$2"
 }
 
 #ファイル復号化用関数
@@ -40,9 +40,31 @@ AddPassword(){
     InputData "ユーザー名を入力してください：" UserName
     InputData "パスワードを入力してください：" PassWord
 
-    DecryptFile "$FileName""gpg"
+    #もし既に保存用ファイルがある場合：復号化してから追記する、一時ファイルを使用する
+    if [ -e "$DecryptedFileName" ]; then
+        DecryptFileTmp="$DecryptedFileName.tmp" #一時ファイル名
 
-    echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
+        #復号化したファイルを一時ファイルに保存
+        DecryptFile "$DecryptedFileName" > $DecryptFileTmp 
+
+        #一時ファイルに追記
+        echo "$ServiceName:$UserName:$PassWord" >> $DecryptFileTmp 
+
+        #一時ファイルを元ファイルに上書き
+        mv $DecryptFileTmp "$FileName"
+        rm $DecryptFileTmp #一時ファイルを削除
+
+        #一時ファイルを暗号化
+        EncryptFile "$FileName" "FileName
+ 
+
+    #もしファイルがない場合：新たに作成し、暗号化する
+    else
+        echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
+        EncryptFile "$FileName"
+                
+    fi
+
     echo "パスワードの追加は成功しました。"
 }
 
@@ -68,7 +90,7 @@ GetPassword(){
         echo "そのサービスは登録されていません。"
     fi
 
-    }
+    }  
 
 
 
@@ -82,7 +104,7 @@ SelectMode(){
         case "$mode" in
             "Add Password")
                 AddPassword
-                EncryptFile "$FileName"
+                
                 ;;
             "Get Password")
                 GetPassword
