@@ -6,12 +6,6 @@ PassWordFileName="PassWord"
 EncryptedFileName=$PassWordFileName".gpg"
 GPGUserName="Hakuryu"
 
-#拡張子除外関数
-ExtractFileName(){
-    local fileNameWithExtension="$1"
-    local OnlyfileName="${fileNameWithExtension%%.*}"
-    echo "$OnlyfileName"
-}
 
 #各データ入力用関数
 # 第1引数のテキストを表示し、第2引数の変数へ入力値を格納する
@@ -24,14 +18,11 @@ InputData(){
 # 引数として渡されたファイルを暗号化してから保存
 # 暗号化されたファイルの拡張子は FileName + ".gpg" となる
 EncryptFile(){
-    # local EncryptedFileName=$1".gpg"
-    # local RenameFileName=$(ExtractFileName "$1") #余分な拡張子を除外 例)gpg.tmp.gpg 
     gpg --encrypt -r "$GPGUserName" "$1"
 }
 
 #ファイル復号化用関数
 # 引数として渡されたファイルを復号化する
-# 復号化するファイル名は FileName + ".gpg" となる
 DecryptFile(){
     gpg --decrypt "$1"
 }
@@ -39,9 +30,7 @@ DecryptFile(){
 
 #保存用関数
 # 渡された3つの引数をFileNameに保存する
-#   保存するテキストの形式
-#       第1引数:第2引数:第3引数
-#       サービス名:ユーザー名:パスワード
+#   保存するテキストの形式：[サービス名:ユーザー名:パスワード]
 AddPassword(){
     InputData "サービス名を入力してください：" ServiceName
     InputData "ユーザー名を入力してください：" UserName
