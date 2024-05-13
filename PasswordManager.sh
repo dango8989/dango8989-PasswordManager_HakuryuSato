@@ -3,7 +3,9 @@
 
 #グローバル変数
 FileName="PassWord.txt"
+DecryptedFileName=$FileName".gpg"
 GPGUserName="Hakuryu"
+
 
 
 #各データ入力用関数
@@ -25,7 +27,7 @@ EncryptFile(){
 # 引数として渡されたファイルを復号化する
 # 復号化するファイル名は FileName + ".gpg" となる
 DecryptFile(){
-    gpg --decrypt "$1"".gpg"
+    gpg --decrypt "$1"
 }
 
 #保存用関数
@@ -37,6 +39,8 @@ AddPassword(){
     InputData "サービス名を入力してください：" ServiceName
     InputData "ユーザー名を入力してください：" UserName
     InputData "パスワードを入力してください：" PassWord
+
+    DecryptFile "$FileName""gpg"
 
     echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
     echo "パスワードの追加は成功しました。"
