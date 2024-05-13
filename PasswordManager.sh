@@ -14,13 +14,19 @@ InputData(){
 }
 
 #ファイル暗号化用関数
-# 引数として渡されたファイルを暗号化し、暗号化前のファイルを削除する
+# 引数として渡されたファイルを暗号化してから保存し、暗号化前のファイルを削除する
 # 暗号化されたファイルの拡張子は FileName + ".gpg" となる
 EncryptFile(){
     gpg --encrypt -r "$GPGUserName" "$1"
     rm "$1"
 }
 
+#ファイル復号化用関数
+# 引数として渡されたファイルを復号化する
+# 復号化するファイル名は FileName + ".gpg" となる
+DecryptFile(){
+    gpg --decrypt "$1"".gpg"
+}
 
 #保存用関数
 # 渡された3つの引数をFileNameに保存する
@@ -34,11 +40,7 @@ AddPassword(){
 
     echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
     echo "パスワードの追加は成功しました。"
-
 }
-
-
-
 
 
 
@@ -56,8 +58,7 @@ GetPassword(){
             echo "パスワード：$passWord"
             Found=True
         fi
-    done < "$FileName"
-
+    done < <(DecryptFile "$FileName")
 
     if [ "$Found" = False ]; then #サービス名が見つからなかった場合
         echo "そのサービスは登録されていません。"
