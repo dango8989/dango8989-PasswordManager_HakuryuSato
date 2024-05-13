@@ -6,7 +6,12 @@ FileName="PassWord.txt"
 DecryptedFileName=$FileName".gpg"
 GPGUserName="Hakuryu"
 
-
+#拡張子除外関数
+ExtractFileName(){
+    local FileNameWithExtension="$1"
+    local OnlyFileName="${FileNameWithExtension%.*}"
+    echo "$OnlyFileName"
+}
 
 #各データ入力用関数
 # 第1引数のテキストを表示し、第2引数の変数へ入力値を格納する
