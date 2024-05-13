@@ -3,7 +3,7 @@
 
 #グローバル変数
 FileName="PassWord.txt"
-EncryptedFileName="PassWord.gpg"
+GPGUserName="Hakuryu"
 
 
 #各データ入力用関数
@@ -12,6 +12,15 @@ InputData(){
     echo "$1"
     read "$2"
 }
+
+#ファイル暗号化用関数
+# 引数として渡されたファイルを暗号化し、暗号化前のファイルを削除する
+# 暗号化されたファイルの拡張子は FileName + ".gpg" となる
+EncryptFile(){
+    gpg --encrypt -r "$GPGUserName" "$1"
+    rm "$1"
+}
+
 
 #保存用関数
 # 渡された3つの引数をFileNameに保存する
@@ -23,9 +32,11 @@ AddPassword(){
     InputData "ユーザー名を入力してください：" UserName
     InputData "パスワードを入力してください：" PassWord
 
-    echo "$ServiceName:$UserName:$PassWord" >> gpg --output "$EncryptedFileName" --encrypt
+    echo "$ServiceName:$UserName:$PassWord" >> "$FileName"
     echo "パスワードの追加は成功しました。"
+
 }
+
 
 
 
@@ -47,6 +58,7 @@ GetPassword(){
         fi
     done < "$FileName"
 
+
     if [ "$Found" = False ]; then #サービス名が見つからなかった場合
         echo "そのサービスは登録されていません。"
     fi
@@ -65,6 +77,7 @@ SelectMode(){
         case "$mode" in
             "Add Password")
                 AddPassword
+                EncryptFile "$FileName"
                 ;;
             "Get Password")
                 GetPassword
